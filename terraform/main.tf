@@ -35,3 +35,17 @@ module "ecr" {
   encryption_type     = var.encryption_type
   force_delete        = var.force_delete
 }
+
+# IAM Module - Roles and policies for ECS
+module "iam" {
+  source = "./modules/iam"
+  
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = var.default_tags
+  
+  # Set to true if you need to create the service-linked role
+  create_ecs_service_linked_role = false
+}
+
+
