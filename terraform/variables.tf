@@ -83,4 +83,22 @@ variable "single_nat_gateway" {
   default     = true # Default to true for cost savings in a university project
 }
 
+# ECR module variables
+variable "image_tag_mutability" {
+  description = "The tag mutability setting for the repository. Must be one of: MUTABLE or IMMUTABLE"
+  type        = string
+  default     = "MUTABLE"
+}
+
+variable "encryption_type" {
+  description = "The encryption type to use for the repository. Valid values are AES256 or KMS"
+  type        = string
+  default     = "AES256"
+}
+
+variable "force_delete" {
+  description = "If true, will delete the repository even if it contains images"
+  type        = bool
+  default     = true  # Set to true for easier cleanup in dev environments
+}
 # Add additional variables for ECR and ECS modules as needed

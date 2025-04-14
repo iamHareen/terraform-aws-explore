@@ -10,21 +10,28 @@
 module "vpc" {
   source = "./modules/vpc"
 
-  project_name        = var.project_name
-  environment         = var.environment
-  vpc_cidr            = var.vpc_cidr
-  availability_zones  = var.availability_zones
-  public_subnets_cidr = var.public_subnets_cidr
+  project_name         = var.project_name
+  environment          = var.environment
+  vpc_cidr             = var.vpc_cidr
+  availability_zones   = var.availability_zones
+  public_subnets_cidr  = var.public_subnets_cidr
   private_subnets_cidr = var.private_subnets_cidr
-  
+
   # NAT Gateway configuration
   create_nat_gateway = var.create_nat_gateway
   single_nat_gateway = var.single_nat_gateway
-  
+
   tags = var.default_tags
 }
 
+# ECR Module - Container registry for Docker images
 module "ecr" {
   source = "./modules/ecr"
-  ecr_repo_name = var.ecr_repo_name
+  
+  # Pass variables to the ECR module
+  project_name        = var.project_name
+  environment         = var.environment
+  image_tag_mutability = var.image_tag_mutability
+  encryption_type     = var.encryption_type
+  force_delete        = var.force_delete
 }
