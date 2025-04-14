@@ -1,3 +1,4 @@
+# Common Tags
 variable "default_tags" {
   description = "Default tags for all resources"
   type        = map(string)
@@ -19,6 +20,7 @@ variable "project_name" {
   type        = string
   default     = "terraform-aws-demo"
 }
+
 
 variable "environment" {
   description = "Environment (dev, staging, prod)"
@@ -42,3 +44,43 @@ variable "ecr_repo_name" {
   type        = string
   default     = "repo-terraform-aws-demo"
 }
+
+# VPC Variables -------------------------------------
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "availability_zones" {
+  description = "List of availability zones to deploy the subnets in"
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b"] # Change according to your region
+}
+
+variable "public_subnets_cidr" {
+  description = "List of CIDR blocks for public subnets"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+variable "private_subnets_cidr" {
+  description = "List of CIDR blocks for private subnets"
+  type        = list(string)
+  default     = ["10.0.101.0/24", "10.0.102.0/24"]
+}
+
+# NAT Gateway Variables
+variable "create_nat_gateway" {
+  description = "Flag to enable or disable the creation of NAT gateways"
+  type        = bool
+  default     = true
+}
+
+variable "single_nat_gateway" {
+  description = "Flag to create a single NAT gateway for all private subnets (cost-effective for dev/test)"
+  type        = bool
+  default     = true # Default to true for cost savings in a university project
+}
+
+# Add additional variables for ECR and ECS modules as needed

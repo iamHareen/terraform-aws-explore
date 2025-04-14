@@ -1,11 +1,19 @@
-# Store Terraform state in S3 bucket
-# Remote state storage provides better collaboration and security
+# For a production setup, you might want to use S3 backend
+# terraform {
+#   backend "s3" {
+#     bucket         = "s3-terraform-aws-demo"  # Replace with your actual bucket name
+#     key            = "demo/path.tfstate"            # Path to state file within bucket
+#     region         = "us-east-1"                    # Region where bucket exists
+#     dynamodb_table = "dynamo-terraform-aws-demo"    # For state locking to prevent conflicts
+#     encrypt        = true                           # Encrypt state data at rest
+#   }
+# }
+
+# Backend Configuration
+# For local development, you can use the local backend
 terraform {
-  backend "s3" {
-    bucket         = "s3-terraform-aws-demo"  # Replace with your actual bucket name
-    key            = "demo/path.tfstate"            # Path to state file within bucket
-    region         = "us-east-1"                    # Region where bucket exists
-    dynamodb_table = "dynamo-terraform-aws-demo"    # For state locking to prevent conflicts
-    encrypt        = true                           # Encrypt state data at rest
+  backend "local" {
+    path = "terraform.tfstate"
   }
 }
+
