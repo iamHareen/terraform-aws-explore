@@ -1,27 +1,108 @@
-# Local Terraform files
-**/.terraform/*
-**/.terraform.lock.hcl
-**/terraform.tfstate
-**/terraform.tfstate.backup
-**/*.tfvars
-**/*.tfvars.json
+# # Local Terraform files
+# **/.terraform/*
+# **/.terraform.lock.hcl
+# **/terraform.tfstate
+# **/terraform.tfstate.backup
+# **/*.tfvars
+# **/*.tfvars.json
 
-# IDE/Editor files
-**/.vscode/*
-**/.idea/*
-**/*.swp
-**/.env
-**/.env.local
+# # IDE/Editor files
+# **/.vscode/*
+# **/.idea/*
+# **/*.swp
+# **/.env
+# **/.env.local
 
-# Docker/build artifacts
-**/app/.env
-**/app/build/
-**/app/*.log
+# # Docker/build artifacts
+# **/app/.env
+# **/app/build/
+# **/app/*.log
 
-# OS/metadata files
-**/.DS_Store
-**/Thumbs.db
+# # OS/metadata files
+# **/.DS_Store
+# **/Thumbs.db
 
-# CI/CD temporary files
-**/.cache/
-**/dist/
+# # CI/CD temporary files
+# **/.cache/
+# **/dist/
+
+
+# General
+.DS_Store
+*.swp
+*.swo
+*~
+*.log
+*.bak
+*.backup
+*.tmp
+*.pid
+*.seed
+*.pid.lock
+
+# IDE specific
+.vscode/
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+*.tfvars
+*.terraform.tfstate.lock.info
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+docker-compose.override.yml
+
+# Local development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Flask
+instance/
+.webassets-cache
+
+# Testing
+coverage/
+htmlcov/
+.pytest_cache/
