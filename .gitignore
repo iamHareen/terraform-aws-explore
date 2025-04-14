@@ -1,0 +1,27 @@
+# Local Terraform files
+**/.terraform/*
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/*.tfvars
+**/*.tfvars.json
+
+# IDE/Editor files
+**/.vscode/*
+**/.idea/*
+**/*.swp
+**/.env
+**/.env.local
+
+# Docker/build artifacts
+**/app/.env
+**/app/build/
+**/app/*.log
+
+# OS/metadata files
+**/.DS_Store
+**/Thumbs.db
+
+# CI/CD temporary files
+**/.cache/
+**/dist/
