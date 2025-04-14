@@ -36,3 +36,9 @@ variable "dynamodb_table_name" {
   type        = string
   default     = "dynamo-terraform-aws-demo"
 }
+
+variable "ecr_repo_name" {
+  description = "ECR Repo Name"
+  type        = string
+  default     = "repo-terraform-aws-demo"
+}

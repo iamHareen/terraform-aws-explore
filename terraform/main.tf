@@ -14,3 +14,8 @@ module "tf-state" {
   bucket_name = var.bucket_name
   table_name = var.dynamodb_table_name
 }
+
+module "ecr" {
+  source = "./modules/ecr"
+  ecr_repo_name = var.ecr_repo_name
+}
