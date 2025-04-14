@@ -63,34 +63,34 @@ resource "aws_subnet" "private" {
 
 
 # Elastic IPs for NAT Gateways
-resource "aws_eip" "nat" {
-  count  = var.create_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets_cidr)) : 0
-  domain = "vpc"
+# resource "aws_eip" "nat" {
+#   count  = var.create_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets_cidr)) : 0
+#   domain = "vpc"
   
-  tags = merge(
-    var.tags,
-    {
-      Name = "${var.project_name}-eip-${count.index + 1}-${var.environment}"
-    }
-  )
-}
+#   tags = merge(
+#     var.tags,
+#     {
+#       Name = "${var.project_name}-eip-${count.index + 1}-${var.environment}"
+#     }
+#   )
+# }
 
 
-# NAT Gateways
-resource "aws_nat_gateway" "main" {
-  count         = var.create_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets_cidr)) : 0
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+# # NAT Gateways
+# resource "aws_nat_gateway" "main" {
+#   count         = var.create_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.public_subnets_cidr)) : 0
+#   allocation_id = aws_eip.nat[count.index].id
+#   subnet_id     = aws_subnet.public[count.index].id
   
-  tags = merge(
-    var.tags,
-    {
-      Name = "${var.project_name}-nat-gw-${count.index + 1}-${var.environment}"
-    }
-  )
+#   tags = merge(
+#     var.tags,
+#     {
+#       Name = "${var.project_name}-nat-gw-${count.index + 1}-${var.environment}"
+#     }
+#   )
   
-  depends_on = [aws_internet_gateway.main]
-}
+#   depends_on = [aws_internet_gateway.main]
+# }
 
 # Public Route Table
 resource "aws_route_table" "public" {
@@ -132,12 +132,12 @@ resource "aws_route_table" "private" {
 }
 
 # Route from private subnet to NAT Gateway for internet access
-resource "aws_route" "private_nat" {
-  count                  = var.create_nat_gateway ? (var.single_nat_gateway ? length(var.private_subnets_cidr) : length(var.private_subnets_cidr)) : 0
-  route_table_id         = element(aws_route_table.private[*].id, var.single_nat_gateway ? 0 : count.index)
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = element(aws_nat_gateway.main[*].id, var.single_nat_gateway ? 0 : count.index)
-}
+# resource "aws_route" "private_nat" {
+#   count                  = var.create_nat_gateway ? (var.single_nat_gateway ? length(var.private_subnets_cidr) : length(var.private_subnets_cidr)) : 0
+#   route_table_id         = element(aws_route_table.private[*].id, var.single_nat_gateway ? 0 : count.index)
+#  destination_cidr_block = "0.0.0.0/0"
+#   nat_gateway_id         = element(aws_nat_gateway.main[*].id, var.single_nat_gateway ? 0 : count.index)
+# }
 
 # Associate private subnets with private route tables
 resource "aws_route_table_association" "private" {

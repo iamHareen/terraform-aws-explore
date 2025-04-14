@@ -3,7 +3,7 @@ variable "default_tags" {
   description = "Default tags for all resources"
   type        = map(string)
   default = {
-    Project     = "terraform-aws-demo"
+    Project     = "demo-tag-01"
     Environment = "dev"
     ManagedBy   = "terraform"
   }
@@ -18,7 +18,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "terraform-aws-demo"
+  default     = "demo-version-0011"
 }
 
 
@@ -101,4 +101,55 @@ variable "force_delete" {
   type        = bool
   default     = true  # Set to true for easier cleanup in dev environments
 }
-# Add additional variables for ECR and ECS modules as needed
+
+# ECS variables
+variable "use_private_subnets" {
+  description = "Whether to use private subnets for the ECS service"
+  type        = bool
+  default     = true
+}
+
+variable "assign_public_ip" {
+  description = "Whether to assign a public IP to the ECS tasks"
+  type        = bool
+  default     = false
+}
+
+variable "container_image_tag" {
+  description = "Tag of the container image"
+  type        = string
+  default     = "latest"
+}
+
+variable "container_port" {
+  description = "Port on which the container is listening"
+  type        = number
+  default     = 80
+}
+
+variable "task_cpu" {
+  description = "CPU units for the task (e.g., 256)"
+  type        = number
+  default     = 256
+}
+
+variable "task_memory" {
+  description = "Memory for the task in MiB (e.g., 512)"
+  type        = number
+  default     = 512
+}
+
+variable "service_desired_count" {
+  description = "Desired count of tasks in the service"
+  type        = number
+  default     = 1
+}
+
+variable "container_environment" {
+  description = "Environment variables for the container"
+  type        = list(object({
+    name  = string
+    value = string
+  }))
+  default = []
+}
