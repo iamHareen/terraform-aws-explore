@@ -2,11 +2,11 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-COPY src/requirements.txt .
+COPY app/src/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/ .
+COPY app/src/ .
 
 EXPOSE 5001
 

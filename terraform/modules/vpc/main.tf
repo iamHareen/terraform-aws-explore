@@ -1,7 +1,6 @@
 # modles/vpc/vpc.tf
-# main.tf for the VPC module
 
-# VPC Creation
+# vpc creation
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
@@ -30,13 +29,12 @@ resource "aws_subnet" "public" {
   )
 }
 
-
 # private subnet
 resource "aws_subnet" "private" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.private_subnet_cidr
   availability_zone       = var.availability_zone
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 
   tags = merge(
     var.tags,
@@ -64,7 +62,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   tags = {
-    Name = "${var.environment}-nat-eip-${var.environment}"
+    Name = "${var.environment}-nat-eip"
   }
 }
 
@@ -75,10 +73,8 @@ resource "aws_nat_gateway" "nat" {
   tags = {
     Name = "${var.environment}-nat-gateway-${var.environment}"
   }
-
   depends_on = [aws_internet_gateway.igw]
 }
-
 
 # Route tables
 resource "aws_route_table" "public" {
