@@ -1,4 +1,5 @@
-# ECS Task Execution Role
+# modules/iam/main.tf
+
 # ECS Task Execution Role
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "${var.project_name}-ecs-task-execution-role-${var.environment}"
@@ -20,7 +21,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 }
 
 # Attach the AmazonECSTaskExecutionRolePolicy
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
@@ -30,7 +31,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
 resource "aws_iam_policy" "ecr_access" {
   name        = "${var.project_name}-ecr-access-policy-${var.environment}"
   description = "Policy to allow ECS to pull images from ECR"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -45,20 +46,20 @@ resource "aws_iam_policy" "ecr_access" {
       }
     ]
   })
-  
+
   tags = var.tags
 }
 
 # Attach ECR Access Policy to Execution Role
-resource "aws_iam_role_policy_attachment" "ecs_ecr_access" {
-  role       = aws_iam_role.ecs_task_execution_role.name 
+resource "aws_iam_role_policy_attachment" "ecs_ecr_access_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecr_access.arn
 }
 
 # ECS Task Role
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.project_name}-ecs-task-role-${var.environment}"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -69,7 +70,7 @@ resource "aws_iam_role" "ecs_task_role" {
       }
     }]
   })
-  
+
   tags = var.tags
 }
 
@@ -77,7 +78,7 @@ resource "aws_iam_role" "ecs_task_role" {
 resource "aws_iam_policy" "cloudwatch_logs_access" {
   name        = "${var.project_name}-cloudwatch-logs-policy-${var.environment}"
   description = "Policy to allow writing to CloudWatch Logs"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -91,12 +92,12 @@ resource "aws_iam_policy" "cloudwatch_logs_access" {
       }
     ]
   })
-  
+
   tags = var.tags
 }
 
 # Attach CloudWatch Logs Access Policy to Task Role
-resource "aws_iam_role_policy_attachment" "ecs_cloudwatch_access" {
+resource "aws_iam_role_policy_attachment" "ecs_cloudwatch_access_policy" {
   role       = aws_iam_role.ecs_task_role.name
   policy_arn = aws_iam_policy.cloudwatch_logs_access.arn
 }
@@ -107,12 +108,12 @@ resource "aws_iam_policy" "custom_task_policy" {
   name        = "${var.project_name}-custom-task-policy-${var.environment}"
   description = "Custom policy for ECS task"
   policy      = var.custom_task_policy_document
-  
-  tags = var.tags
+  tags        = var.tags
 }
 
-resource "aws_iam_role_policy_attachment" "custom_task_policy" {
+resource "aws_iam_role_policy_attachment" "custom_task_policy_attachment" {
   count      = var.custom_task_policy_document != "" ? 1 : 0
   role       = aws_iam_role.ecs_task_role.name
-  policy_arn = aws_iam_policy.custom_task_policy[0].arn
+  # Access the ARN only if the policy was created (count > 0)
+  policy_arn = element(aws_iam_policy.custom_task_policy.*.arn, 0)
 }

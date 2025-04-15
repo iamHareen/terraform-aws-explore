@@ -1,223 +1,118 @@
-# # ECS module variables.tf - Variables for ECS cluster, task definition, and service
-
-# # General
-# variable "project_name" {
-#   description = "Name of the project"
-#   type        = string
-# }
-
-# variable "environment" {
-#   description = "Environment (dev, staging, prod)"
-#   type        = string
-# }
-
-# variable "aws_region" {
-#   description = "AWS region"
-#   type        = string
-# }
-
-# variable "tags" {
-#   description = "Tags to apply to all resources"
-#   type        = map(string)
-#   default     = {}
-# }
-
-# # Task configuration
-# variable "task_cpu" {
-#   description = "CPU units for the task (for vertical scaling)"
-#   type        = number
-# }
-
-# variable "task_memory" {
-#   description = "Memory for the task in MiB (for vertical scaling)"
-#   type        = number
-# }
-
-# variable "task_execution_role_arn" {
-#   description = "ARN of the task execution role"
-#   type        = string
-# }
-
-# variable "task_role_arn" {
-#   description = "ARN of the task role"
-#   type        = string
-# }
-
-# # Container configuration
-# variable "container_name" {
-#   description = "Name of the container"
-#   type        = string
-# }
-
-# variable "container_image" {
-#   description = "Docker image for the application"
-#   type        = string
-# }
-
-# variable "container_port" {
-#   description = "Port exposed by the container"
-#   type        = number
-# }
-
-# variable "container_environment" {
-#   description = "Environment variables for the container"
-#   type        = list(map(string))
-# }
-
-
-# # Network configuration
-# variable "vpc_id" {
-#   description = "ID of the VPC"
-#   type        = string
-# }
-
-# variable "subnet_ids" {
-#   description = "List of subnet IDs for the ECS service"
-#   type        = list(string)
-# }
-
-# variable "assign_public_ip" {
-#   description = "Assign public IP to the ENI"
-#   type        = bool
-# }
-
-# # Service configuration
-# variable "service_desired_count" {
-#   description = "Number of instances of the task to run"
-#   type        = number
-# }
-
-# variable "health_check_grace_period" {
-#   description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks"
-#   type        = number
-# }
-
-# variable "deployment_minimum_healthy_percent" {
-#   description = "Minimum healthy percent during deployment"
-#   type        = number
-#   # default     = 100
-# }
-
-# variable "deployment_maximum_percent" {
-#   description = "Maximum percent during deployment"
-#   type        = number
-#   # default     = 200
-# }
-
-# # Monitoring and logging
-# variable "enable_container_insights" {
-#   description = "Enable CloudWatch Container Insights for the cluster"
-#   type        = bool
-# }
-
-# variable "log_retention_days" {
-#   description = "Number of days to retain CloudWatch logs"
-#   type        = number
-# }
+# modules/ecs/variables.tf
 
 variable "project_name" {
-  description = "Name of the project"
   type        = string
+  description = "The name of the project"
 }
 
 variable "environment" {
-  description = "Environment (dev, staging, prod, etc.)"
   type        = string
-}
-
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
+  description = "The environment (e.g., dev, prod)"
 }
 
 variable "tags" {
-  description = "A map of tags to add to all resources"
   type        = map(string)
+  description = "A map of tags to apply to resources in the ECS module"
 }
 
-# Task configuration
-variable "task_cpu" {
-  description = "CPU units for the task (for vertical scaling)"
-  type        = number
-}
-
-variable "task_memory" {
-  description = "Memory for the task in MiB (for vertical scaling)"
-  type        = number
-}
-
-variable "task_execution_role_arn" {
-  description = "ARN of the task execution role"
+variable "aws_region" {
   type        = string
+  description = "AWS region"
 }
 
-variable "task_role_arn" {
-  description = "ARN of the task role"
-  type        = string
-}
-
-# Container configuration
-variable "container_image" {
-  description = "Docker image for the application"
-  type        = string
-}
-
-variable "container_port" {
-  description = "Port exposed by the container"
-  type        = number
-}
-
-variable "container_environment" {
-  description = "Environment variables for the container"
-  type        = list(map(string))
-}
-
-# Network configuration
 variable "vpc_id" {
-  description = "ID of the VPC"
   type        = string
+  description = "The ID of the VPC"
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs for the ECS service"
   type        = list(string)
+  description = "A list of subnet IDs to run the ECS service in"
 }
 
 variable "assign_public_ip" {
-  description = "Assign public IP to the ENI"
   type        = bool
+  description = "Whether to assign public IP addresses to the Fargate tasks"
+  default     = false
 }
 
-# Service configuration
-variable "service_desired_count" {
-  description = "Number of instances of the task to run"
+variable "enable_container_insights" {
+  type        = bool
+  description = "Whether to enable Container Insights for the ECS cluster"
+  default     = false
+}
+
+variable "task_cpu" {
+  type        = string
+  description = "The amount of CPU to assign to the task (e.g., 256, 512)"
+  default     = "256"
+}
+
+variable "task_memory" {
+  type        = string
+  description = "The amount of memory (in MiB) to assign to the task (e.g., 512, 1024)"
+  default     = "512"
+}
+
+variable "task_execution_role_arn" {
+  type        = string
+  description = "The ARN of the ECS task execution IAM role"
+  # No sensible default, must be provided
+}
+
+variable "task_role_arn" {
+  type        = string
+  description = "The ARN of the ECS task IAM role"
+  # No sensible default, must be provided
+}
+
+variable "container_image" {
+  type        = string
+  description = "The Docker image to run in the container"
+  # No sensible default, must be provided
+}
+
+variable "container_port" {
   type        = number
+  description = "The port the container exposes"
+  default     = 80
+}
+
+variable "container_environment" {
+  type        = list(object({
+    name  = string
+    value = string
+  }))
+  description = "A list of environment variables for the container"
+  default     = []
+}
+
+variable "cloudwatch_log_group_name" {
+  type        = string
+  description = "The name of the CloudWatch Log Group for ECS tasks"
+  # No sensible default, must be provided
+}
+
+variable "service_desired_count" {
+  type        = number
+  description = "The desired number of tasks to run in the service"
+  default     = 1
 }
 
 variable "health_check_grace_period" {
-  description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks"
   type        = number
+  description = "The grace period for service health checks (in seconds)"
+  default     = 0
 }
 
 variable "deployment_minimum_healthy_percent" {
-  description = "Minimum healthy percent during deployment"
   type        = number
+  description = "The minimum percentage of healthy tasks during deployments"
   default     = 100
 }
 
 variable "deployment_maximum_percent" {
-  description = "Maximum percent during deployment"
   type        = number
+  description = "The maximum percentage of tasks (as a percentage of desiredCount) that can be deployed at once"
   default     = 200
-}
-
-# Monitoring and logging
-variable "enable_container_insights" {
-  description = "Enable CloudWatch Container Insights for the cluster"
-  type        = bool
-}
-
-variable "log_retention_days" {
-  description = "Number of days to retain CloudWatch logs"
-  type        = number
 }

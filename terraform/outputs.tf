@@ -35,6 +35,17 @@ output "ecr_repository_arn" {
   value       = module.ecr.repository_arn
 }
 
+# --------- cloudwatch outputs ----------
+output "cloudwatch_log_group_name" {
+  description = "Name of the CloudWatch log group"
+  value       = module.cloudwatch.log_group_name
+}
+
+output "cloudwatch_log_group_arn" {
+  description = "ARN of the CloudWatch log group"
+  value       = module.cloudwatch.log_group_arn
+}
+
 # --------- iam outputs ----------
 # IAM Role Outputs
 output "ecs_execution_role_arn" {
@@ -71,9 +82,4 @@ output "ecs_service_name" {
 output "ecs_task_definition_family" {
   description = "Family of the ECS task definition"
   value       = module.ecs.task_definition_family
-}
-
-output "cloudwatch_log_group_name" {
-  description = "Name of the CloudWatch log group"
-  value       = module.ecs.cloudwatch_log_group_name
 }

@@ -1,3 +1,5 @@
+# modules/iam/variables.tf
+
 variable "project_name" {
   description = "Name of the project"
   type        = string
@@ -9,36 +11,36 @@ variable "environment" {
 }
 
 variable "tags" {
-  description = "Tags to apply to all resources"
+  description = "Tags to apply to all IAM resources"
   type        = map(string)
+  default     = {}
 }
 
 variable "ecr_repository_arn" {
-  description = "ARN of the ECR repository to grant access to"
+  description = "ARN of the ECR repository to allow access"
   type        = string
   default     = ""
 }
 
 variable "cloudwatch_log_group_arn" {
-  description = "ARN of the CloudWatch Log Group for task logs"
+  description = "ARN of the CloudWatch Log Group for ECS tasks"
   type        = string
-  default     = "*"
+}
+
+variable "enable_custom_task_policy" {
+  description = "Whether to enable a custom IAM policy for the ECS task role"
+  type        = bool
+  default     = false
+}
+
+variable "custom_task_policy" {
+  description = "JSON document for the custom IAM policy for the ECS task role"
+  type        = string
+  default     = ""
 }
 
 variable "custom_task_policy_document" {
-  description = "Custom IAM policy document for the ECS task role"
-  type        = string
-  default     = ""
-}
-
-variable "execution_role_name" {
-  description = "Name for the ECS task execution role"
-  type        = string
-  default     = ""
-}
-
-variable "task_role_name" {
-  description = "Name for the ECS task role"
+  description = "JSON document for the custom IAM policy for the ECS task role (used internally)"
   type        = string
   default     = ""
 }

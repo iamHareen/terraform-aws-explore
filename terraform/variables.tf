@@ -38,83 +38,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-# -------- VPC Variables --------------------
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "public_subnet_cidr" {
-  description = "CIDR block for the public subnet"
-  type        = string
-  default     = "10.0.1.0/24"
-}
-
-variable "private_subnet_cidr" {
-  description = "CIDR block for the private subnet"
-  type        = string
-  default     = "10.0.2.0/24"
-}
-
-variable "availability_zone" {
-  description = "Availability Zone for subnets"
-  type        = string
-  default     = "us-east-1a"
-}
-
-# ----------------- ECR Variables -----------------------------
-variable "ecr_repo_name" {
-  description = "ECR Repo Name"
-  type        = string
-  default     = "repo-terraform-aws-demo"
-}
-
-variable "image_tag_mutability" {
-  description = "The tag mutability setting for the repository. Must be one of: MUTABLE or IMMUTABLE"
-  type        = string
-  default     = "MUTABLE"
-}
-
-variable "encryption_type" {
-  description = "The encryption type to use for the repository. Valid values are AES256 or KMS"
-  type        = string
-  default     = "AES256"
-}
-
-variable "force_delete" {
-  description = "If true, will delete the repository even if it contains images"
-  type        = bool
-  default     = true  # Set to true for easier cleanup in dev environments
-}
-
-variable "scan_on_push" {
-  description = "If true, images will be scanned on push"
-  type        = bool
-  default     = false
-}
-variable "create_repository_policy" {
-  description = "Whether to create a repository policy"
-  type        = bool
-  default     = false
-}
-variable "repository_policy" {
-  description = "The repository policy to apply"
-  type        = string
-  default     = ""
-}
-variable "create_lifecycle_policy" {
-  description = "Whether to create a lifecycle policy"
-  type        = bool
-  default     = false
-}
-variable "lifecycle_policy" {
-  description = "The lifecycle policy to apply"
-  type        = string
-  default     = ""
-}
-
-
 # ----------------- IAM Variables -----------------------------
 variable "enable_custom_task_policy" {
   description = "Whether to create a custom task policy"
@@ -141,11 +64,7 @@ variable "ecs_task_memory" {
   description = "Memory for the task in MiB (for vertical scaling)"
   type        = number
   default     = 512
-  # Valid values depend on CPU:
-  # CPU 256: 512, 1024, 2048
-  # CPU 512: 1024, 2048, 3072, 4096
-  # CPU 1024: 2048, 3072, 4096, 5120, 6144, 7168, 8192
-  # ... and so on
+  # Valid values: 512, 1024, 2048, 4096, 8192, 16384
 }
 
 variable "ecs_container_port" {
@@ -159,7 +78,7 @@ variable "ecs_container_environment" {
   type        = list(map(string))
   default = [
     {
-      name  = "ENV_VAR_NAME",
+      name  = "ENV_VAR_NAME", 
       value = "ENV_VAR_VALUE"
     }
   ]
@@ -171,16 +90,23 @@ variable "ecs_service_desired_count" {
   default     = 1
 }
 
-variable "ecs_assign_public_ip" {
-  description = "Assign public IP to the ENI"
-  type        = bool
-  default     = false
-}
 
 variable "ecs_health_check_grace_period" {
   description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks"
   type        = number
+  default     = 0
+}
+
+variable "ecs_deployment_minimum_healthy_percent" {
+  description = "Minimum healthy percent during deployment"
+  type        = number
   default     = 60
+}
+
+variable "ecs_deployment_maximum_percent" {
+  description = "Maximum percent during deployment"
+  type        = number
+  default     = 200
 }
 
 variable "ecs_enable_container_insights" {
@@ -193,16 +119,4 @@ variable "ecs_log_retention_days" {
   description = "Number of days to retain CloudWatch logs"
   type        = number
   default     = 30
-}
-
-variable "ecs_deployment_minimum_healthy_percent" {
-  description = "Minimum healthy percent during deployment"
-  type        = number
-  default     = 100
-}
-
-variable "ecs_deployment_maximum_percent" {
-  description = "Maximum percent during deployment"
-  type        = number
-  default     = 200
 }

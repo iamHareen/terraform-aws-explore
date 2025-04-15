@@ -33,11 +33,6 @@ output "task_definition_family" {
   value       = aws_ecs_task_definition.main.family
 }
 
-output "cloudwatch_log_group_name" {
-  description = "Name of the CloudWatch log group"
-  value       = aws_cloudwatch_log_group.ecs_logs.name
-}
-
 output "security_group_id" {
   description = "ID of the security group for ECS tasks"
   value       = aws_security_group.ecs_tasks.id
