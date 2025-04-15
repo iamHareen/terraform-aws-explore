@@ -3,7 +3,6 @@
 resource "aws_ecr_repository" "main" {
   name                 = "${var.project_name}-${var.environment}-repo"
   image_tag_mutability = var.image_tag_mutability
-
   image_scanning_configuration {
     scan_on_push = var.scan_on_push
   }
@@ -11,7 +10,7 @@ resource "aws_ecr_repository" "main" {
   encryption_configuration {
     encryption_type = var.encryption_type
   }
-  force_delete = true
+  force_delete = var.force_delete
   tags = {
     Name = "${var.project_name}-${var.environment}-repo"
   }
