@@ -13,6 +13,7 @@ variable "environment" {
 variable "tags" {
   type        = map(string)
   description = "A map of tags to apply to resources in the ECS module"
+  default     = {}
 }
 
 variable "aws_region" {

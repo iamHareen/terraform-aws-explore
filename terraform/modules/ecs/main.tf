@@ -76,7 +76,6 @@ resource "aws_security_group" "ecs_tasks" {
   }
 
   tags = merge(
-    var.tags,
     {
       Name = "${var.project_name}-${var.environment}-ecs-tasks-sg"
     }

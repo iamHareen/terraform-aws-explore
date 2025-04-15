@@ -67,6 +67,12 @@ variable "ecs_task_memory" {
   # Valid values: 512, 1024, 2048, 4096, 8192, 16384
 }
 
+variable "container_tag" {
+  type        = string
+  description = "The tag of the Docker image to run in the container"
+  default     = "latest"
+}
+
 variable "ecs_container_port" {
   description = "Port exposed by the container"
   type        = number

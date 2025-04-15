@@ -1,1 +1,1 @@
-# iac-explore
+# terraform-aws-explore demonstrates modern Infrastructure as Code (IaC) practices for deploying and managing cloud resources.
