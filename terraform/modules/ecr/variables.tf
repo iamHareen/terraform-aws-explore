@@ -8,6 +8,12 @@ variable "environment" {
   type        = string
 }
 
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+}
+
+
 variable "image_tag_mutability" {
   description = "The tag mutability setting for the repository. Must be one of: MUTABLE or IMMUTABLE"
   type        = string
@@ -17,6 +23,12 @@ variable "image_tag_mutability" {
     condition     = contains(["MUTABLE", "IMMUTABLE"], var.image_tag_mutability)
     error_message = "Image tag mutability must be either MUTABLE or IMMUTABLE."
   }
+}
+
+variable "scan_on_push" {
+  description = "Enable scan on push for the repository"
+  type        = bool
+  default     = true
 }
 
 variable "encryption_type" {
@@ -34,4 +46,45 @@ variable "force_delete" {
   description = "If true, will delete the repository even if it contains images"
   type        = bool
   default     = false
+}
+
+variable "create_repository_policy" {
+  description = "Whether to create a repository policy"
+  type        = bool
+  default     = false
+}
+
+variable "repository_policy" {
+  description = "JSON policy document for the repository"
+  type        = string
+  default     = ""
+}
+
+variable "create_lifecycle_policy" {
+  description = "Whether to create a lifecycle policy"
+  type        = bool
+  default     = true
+}
+
+variable "lifecycle_policy" {
+  description = "JSON lifecycle policy document"
+  type        = string
+  default     = <<EOF
+{
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Keep last 30 images",
+      "selection": {
+        "tagStatus": "any",
+        "countType": "imageCountMoreThan",
+        "countNumber": 30
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
+}
+EOF
 }

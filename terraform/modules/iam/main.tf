@@ -1,8 +1,7 @@
-# IAM module main.tf - Creates IAM roles and policies for ECS
-
-# ECS Task Execution Role - Used by ECS to pull images and publish logs
+# ECS Task Execution Role
+# ECS Task Execution Role
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "${var.project_name}-${var.environment}-ecs-execution-role"
+  name = "${var.project_name}-ecs-task-execution-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -20,37 +19,65 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   tags = var.tags
 }
 
-# Attach the AWS managed policy for ECS task execution
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+# Attach the AmazonECSTaskExecutionRolePolicy
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# ECS Task Role - Used by the containers themselves
-resource "aws_iam_role" "ecs_task_role" {
-  name = "${var.project_name}-${var.environment}-ecs-task-role"
 
-  assume_role_policy = jsonencode({
+# ECR Access Policy for ECS Execution Role
+resource "aws_iam_policy" "ecr_access" {
+  name        = "${var.project_name}-ecr-access-policy-${var.environment}"
+  description = "Policy to allow ECS to pull images from ECR"
+  
+  policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
         Effect = "Allow"
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
+        Action = [
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:BatchCheckLayerAvailability"
+        ]
+        Resource = var.ecr_repository_arn != "" ? var.ecr_repository_arn : "*"
       }
     ]
   })
-
+  
   tags = var.tags
 }
 
-# Custom policy for the ECS task role (add specific permissions as needed)
-resource "aws_iam_policy" "ecs_task_custom_policy" {
-  name        = "${var.project_name}-${var.environment}-ecs-task-policy"
-  description = "Custom policy for ECS tasks"
+# Attach ECR Access Policy to Execution Role
+resource "aws_iam_role_policy_attachment" "ecs_ecr_access" {
+  role       = aws_iam_role.ecs_task_execution_role.name 
+  policy_arn = aws_iam_policy.ecr_access.arn
+}
 
+# ECS Task Role
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.project_name}-ecs-task-role-${var.environment}"
+  
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+  
+  tags = var.tags
+}
+
+# CloudWatch Logs Access Policy for Task Role
+resource "aws_iam_policy" "cloudwatch_logs_access" {
+  name        = "${var.project_name}-cloudwatch-logs-policy-${var.environment}"
+  description = "Policy to allow writing to CloudWatch Logs"
+  
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -60,21 +87,32 @@ resource "aws_iam_policy" "ecs_task_custom_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Resource = "*"
+        Resource = "${var.cloudwatch_log_group_arn}:*"
       }
     ]
   })
+  
+  tags = var.tags
 }
 
-# Attach the custom policy to the task role
-resource "aws_iam_role_policy_attachment" "ecs_task_role_policy" {
+# Attach CloudWatch Logs Access Policy to Task Role
+resource "aws_iam_role_policy_attachment" "ecs_cloudwatch_access" {
   role       = aws_iam_role.ecs_task_role.name
-  policy_arn = aws_iam_policy.ecs_task_custom_policy.arn
+  policy_arn = aws_iam_policy.cloudwatch_logs_access.arn
 }
 
-# Create a service-linked role for ECS if it doesn't exist
-resource "aws_iam_service_linked_role" "ecs" {
-  count            = var.create_ecs_service_linked_role ? 1 : 0
-  aws_service_name = "ecs.amazonaws.com"
-  description      = "Service-linked role for ECS"
+# Custom task permissions if specified
+resource "aws_iam_policy" "custom_task_policy" {
+  count       = var.custom_task_policy_document != "" ? 1 : 0
+  name        = "${var.project_name}-custom-task-policy-${var.environment}"
+  description = "Custom policy for ECS task"
+  policy      = var.custom_task_policy_document
+  
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "custom_task_policy" {
+  count      = var.custom_task_policy_document != "" ? 1 : 0
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.custom_task_policy[0].arn
 }

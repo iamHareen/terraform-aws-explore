@@ -1,35 +1,44 @@
-# IAM module variables.tf - Variables for IAM roles and policies
-
 variable "project_name" {
   description = "Name of the project"
   type        = string
 }
 
 variable "environment" {
-  description = "Environment (dev, staging, prod)"
+  description = "Environment (dev, staging, prod, etc.)"
   type        = string
 }
 
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
-  default     = {}
 }
 
-variable "create_ecs_service_linked_role" {
-  description = "Whether to create the ECS service linked role"
-  type        = bool
-  default     = false
+variable "ecr_repository_arn" {
+  description = "ARN of the ECR repository to grant access to"
+  type        = string
+  default     = ""
 }
 
-variable "additional_task_role_policies" {
-  description = "List of additional policy ARNs to attach to the task role"
-  type        = list(string)
-  default     = []
+variable "cloudwatch_log_group_arn" {
+  description = "ARN of the CloudWatch Log Group for task logs"
+  type        = string
+  default     = "*"
 }
 
-variable "additional_execution_role_policies" {
-  description = "List of additional policy ARNs to attach to the execution role"
-  type        = list(string)
-  default     = []
+variable "custom_task_policy_document" {
+  description = "Custom IAM policy document for the ECS task role"
+  type        = string
+  default     = ""
+}
+
+variable "execution_role_name" {
+  description = "Name for the ECS task execution role"
+  type        = string
+  default     = ""
+}
+
+variable "task_role_name" {
+  description = "Name for the ECS task role"
+  type        = string
+  default     = ""
 }

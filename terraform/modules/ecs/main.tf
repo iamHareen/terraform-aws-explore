@@ -12,28 +12,27 @@ resource "aws_ecs_cluster" "main" {
   tags = var.tags
 }
 
-# CloudWatch Log Group for ECS
-resource "aws_cloudwatch_log_group" "ecs" {
+# CloudWatch Log Group for ECS tasks
+resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/${var.project_name}-${var.environment}"
   retention_in_days = var.log_retention_days
-
-  tags = var.tags
+  tags              = var.tags
 }
 
-# ECS Task Definition
+# Task Definition
 resource "aws_ecs_task_definition" "main" {
   family                   = "${var.project_name}-${var.environment}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = var.ecs_task_execution_role_arn
-  task_role_arn            = var.ecs_task_role_arn
+  execution_role_arn       = var.task_execution_role_arn
+  task_role_arn            = var.task_role_arn
 
   container_definitions = jsonencode([
     {
       name      = "${var.project_name}-${var.environment}-container"
-      image     = "${var.container_image_url}:${var.container_image_tag}"
+      image     = "${var.container_image}"
       essential = true
       
       portMappings = [
@@ -49,7 +48,7 @@ resource "aws_ecs_task_definition" "main" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
@@ -60,34 +59,9 @@ resource "aws_ecs_task_definition" "main" {
   tags = var.tags
 }
 
-# ECS Service
-resource "aws_ecs_service" "main" {
-  name                               = "${var.project_name}-${var.environment}-service"
-  cluster                            = aws_ecs_cluster.main.id
-  task_definition                    = aws_ecs_task_definition.main.arn
-  desired_count                      = var.service_desired_count
-  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-  deployment_maximum_percent         = var.deployment_maximum_percent
-  launch_type                        = "FARGATE"
-  scheduling_strategy                = "REPLICA"
-  
-  network_configuration {
-    subnets          = var.subnet_ids
-    security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = var.assign_public_ip
-  }
-
-  # Allow updating the service
-  lifecycle {
-    ignore_changes = [desired_count]
-  }
-
-  tags = var.tags
-}
-
 # Security group for ECS Tasks
 resource "aws_security_group" "ecs_tasks" {
-  name        = "${var.project_name}-${var.environment}-ecs-tasks-sg"
+    name        = "${var.project_name}-${var.environment}-ecs-tasks-sg"
   description = "Security group for ECS tasks"
   vpc_id      = var.vpc_id
 
@@ -113,4 +87,41 @@ resource "aws_security_group" "ecs_tasks" {
       Name = "${var.project_name}-${var.environment}-ecs-tasks-sg"
     }
   )
+}
+
+# ECS Service
+resource "aws_ecs_service" "main" {
+  name                               = "${var.project_name}-${var.environment}-service"
+  cluster                            = aws_ecs_cluster.main.id
+  task_definition                    = aws_ecs_task_definition.main.arn
+  desired_count                      = var.service_desired_count
+  launch_type                        = "FARGATE"
+  # scheduling_strategy                = "REPLICA"
+  platform_version = "LATEST"
+  health_check_grace_period_seconds = var.health_check_grace_period
+
+  
+  network_configuration {
+    subnets          = var.subnet_ids
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = var.assign_public_ip
+  }
+
+  # Allow updating the service
+  # lifecycle {
+  #   ignore_changes = [desired_count]
+  # }
+
+    # Prevents downtime by deploying a new task before destroying the old one
+  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+  deployment_maximum_percent         = var.deployment_maximum_percent
+
+  # This is for Vertical Scaling - when you change CPU/Memory, it will deploy new tasks
+  # with the new configuration (Horizontal scaling would be managed by auto-scaling)
+  # Forcing replacement when task definition changes
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = var.tags
 }
