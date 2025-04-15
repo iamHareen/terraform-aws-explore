@@ -1,5 +1,3 @@
-# modules/iam/main.tf
-
 # ECS Task Execution Role
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "${var.project_name}-ecs-task-execution-role-${var.environment}"
@@ -42,7 +40,7 @@ resource "aws_iam_policy" "ecr_access" {
           "ecr:BatchGetImage",
           "ecr:BatchCheckLayerAvailability"
         ]
-        Resource = var.ecr_repository_arn != "" ? var.ecr_repository_arn : "*"
+        Resource = var.ecr_repository_arn
       }
     ]
   })
@@ -104,16 +102,15 @@ resource "aws_iam_role_policy_attachment" "ecs_cloudwatch_access_policy" {
 
 # Custom task permissions if specified
 resource "aws_iam_policy" "custom_task_policy" {
-  count       = var.custom_task_policy_document != "" ? 1 : 0
+  count       = var.custom_task_policy != "" ? 1 : 0
   name        = "${var.project_name}-custom-task-policy-${var.environment}"
   description = "Custom policy for ECS task"
-  policy      = var.custom_task_policy_document
+  policy      = var.custom_task_policy
   tags        = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "custom_task_policy_attachment" {
-  count      = var.custom_task_policy_document != "" ? 1 : 0
+  count      = var.custom_task_policy != "" ? 1 : 0
   role       = aws_iam_role.ecs_task_role.name
-  # Access the ARN only if the policy was created (count > 0)
-  policy_arn = element(aws_iam_policy.custom_task_policy.*.arn, 0)
+  policy_arn = aws_iam_policy.custom_task_policy[0].arn
 }

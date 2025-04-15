@@ -18,12 +18,6 @@ variable "encryption_type" {
   default     = "AES256"
 }
 
-variable "force_delete" {
-  description = "If true, will delete the repository even if it contains images"
-  type        = bool
-  default     = false
-}
-
 variable "create_repository_policy" {
   description = "Whether to create a repository policy"
   type        = bool

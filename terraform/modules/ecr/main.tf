@@ -11,7 +11,7 @@ resource "aws_ecr_repository" "main" {
   encryption_configuration {
     encryption_type = var.encryption_type
   }
-  force_delete = var.force_delete
+  force_delete = true
   tags = {
     Name = "${var.project_name}-${var.environment}-repo"
   }
