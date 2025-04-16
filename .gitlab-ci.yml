@@ -1,0 +1,72 @@
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  AWS_REGION: $AWS_REGION             # Define AWS_REGION as a CI/CD variable
+  AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID     # Define AWS_ACCOUNT_ID as a CI/CD variable
+  ECR_REPOSITORY_URL: "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME" # Construct ECR URL using variables
+  IMAGE_NAME: "my-sample-app"       # Define IMAGE_NAME as a CI/CD variable
+  IMAGE_TAG: "latest"
+  AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID  # Define AWS_ACCESS_KEY_ID as a CI/CD variable
+  AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY # Define AWS_SECRET_ACCESS_KEY as a CI/CD variable
+  ECR_REPOSITORY_NAME: "your-ecr-repo-name" # Define a variable for the ECR repository name
+
+build-image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Building Docker image from $(pwd)"
+    - ls -R app/  # Debug directory structure
+    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" -f app/Dockerfile .
+    - docker images
+    # Save image as a tar file to pass between jobs
+    - mkdir -p image
+    - docker save "$IMAGE_NAME:$IMAGE_TAG" > image/docker-image.tar
+  artifacts:
+    paths:
+      - image/docker-image.tar
+    expire_in: 1 hour
+
+
+push-image-to-ecr:
+  stage: push
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache aws-cli
+    - docker load < image/docker-image.tar
+    # Use AWS credentials from GitLab CI/CD variables
+    - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+    - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+    - aws configure set default.region "$AWS_REGION"
+    - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REPOSITORY_URL"
+  script:
+    - docker tag "$IMAGE_NAME:$IMAGE_TAG" "$ECR_REPOSITORY_URL:$IMAGE_TAG"
+    - docker push "$ECR_REPOSITORY_URL:$IMAGE_TAG"
+  dependencies:
+    - build-image
+
+
+deploy-ecs:
+  stage: deploy
+  image: hashicorp/terraform:1.6.6
+  before_script:
+    - echo "Setting AWS environment variables..."
+    - export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+    - export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+    - export AWS_REGION="$AWS_REGION"
+    - cd terraform
+  script:
+    - echo "Initializing Terraform..."
+    - terraform init
+    - echo "Applying Terraform..."
+    - terraform apply -auto-approve -var="image_url=$ECR_REPOSITORY_URL:$IMAGE_TAG"
+  only:
+    refs:
+      - main
+      - test
