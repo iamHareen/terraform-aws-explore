@@ -1,3 +1,5 @@
+# outputs.tf - root path
+
 # --------- vpc outputs ----------
 output "vpc_id" {
   description = "The ID of the VPC"
@@ -9,10 +11,6 @@ output "public_subnet_id" {
   value       = module.vpc.public_subnet_id
 }
 
-output "private_subnet_id" {
-  description = "private subnet ID"
-  value       = module.vpc.private_subnet_id
-}
 
 # --------- ecr outputs ----------
 output "ecr_repository_url" {
@@ -25,11 +23,6 @@ output "ecr_repository_name" {
   value       = module.ecr.repository_name
 }
 
-output "ecr_repository_registry_id" {
-  description = "The registry ID where the ECR repository was created"
-  value       = module.ecr.registry_id
-}
-
 output "ecr_repository_arn" {
   description = "The ARN of the ECR repository"
   value       = module.ecr.repository_arn
@@ -38,45 +31,23 @@ output "ecr_repository_arn" {
 # --------- cloudwatch outputs ----------
 output "cloudwatch_log_group_name" {
   description = "Name of the CloudWatch log group"
-  value       = module.cloudwatch.log_group_name
+  value       = module.cloudwatch.ecs_logs_group_name
 }
 
 output "cloudwatch_log_group_arn" {
   description = "ARN of the CloudWatch log group"
-  value       = module.cloudwatch.log_group_arn
-}
-
-# --------- iam outputs ----------
-# IAM Role Outputs
-output "ecs_execution_role_arn" {
-  description = "ARN of the ECS task execution role"
-  value       = module.iam.task_execution_role_arn
-}
-
-output "ecs_task_role_arn" {
-  description = "ARN of the ECS task role"
-  value       = module.iam.task_role_arn
-}
-
-output "ecs_execution_role_name" {
-  description = "Name of the ECS task execution role"
-  value       = module.iam.task_execution_role_name
-}
-
-output "ecs_task_role_name" {
-  description = "Name of the ECS task role"
-  value       = module.iam.task_role_name
+  value       = module.cloudwatch.ecs_logs_group_arn
 }
 
 # ECS outputs
 output "ecs_cluster_name" {
   description = "Name of the ECS cluster"
-  value       = module.ecs.cluster_name
+  value       = module.ecs.ecs_cluster_name
 }
 
 output "ecs_service_name" {
   description = "Name of the ECS service"
-  value       = module.ecs.service_name
+  value       = module.ecs.ecs_service_name
 }
 
 output "ecs_task_definition_family" {

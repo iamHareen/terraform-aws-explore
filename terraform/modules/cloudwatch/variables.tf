@@ -9,14 +9,14 @@ variable "environment" {
   description = "The environment (e.g., dev, prod)"
 }
 
-variable "log_retention_days" {
-  type        = number
-  description = "The number of days to retain CloudWatch logs"
-  default     = 30
-}
-
 variable "tags" {
   type        = map(string)
   description = "A map of tags to apply to resources"
   default     = {}
+}
+
+variable "log_retention_days" {
+  type        = number
+  description = "The number of days to retain CloudWatch logs"
+  default     = 1
 }

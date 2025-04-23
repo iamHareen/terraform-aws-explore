@@ -1,34 +1,40 @@
+# modules/ecr/main.tf
 
-# ECR Repository creation
-resource "aws_ecr_repository" "main" {
-  name                 = "${var.project_name}-${var.environment}-repo"
-  image_tag_mutability = var.image_tag_mutability
+# ECR Repository Creation
+resource "aws_ecr_repository" "app_repo" {
+  name                 = "${var.project_name}-repo-${var.environment}"
+  image_tag_mutability = "MUTABLE"
+
   image_scanning_configuration {
-    scan_on_push = var.scan_on_push
+    scan_on_push = true
   }
 
-  encryption_configuration {
-    encryption_type = var.encryption_type
-  }
-  force_delete = var.force_delete
-  tags = {
-    Name = "${var.project_name}-${var.environment}-repo"
-  }
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.project_name}-ecr-${var.environment}"
+    }
+  )
 }
 
+# Set a lifecycle policy to limit the number of images kept
+resource "aws_ecr_lifecycle_policy" "app_repo_policy" {
+  repository = aws_ecr_repository.app_repo.name
 
-# Repository policy
-resource "aws_ecr_repository_policy" "policy" {
-  count      = var.create_repository_policy ? 1 : 0
-  repository = aws_ecr_repository.main.name
-  policy     = var.repository_policy
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 5 images"
+        selection = {
+          tagStatus     = "any"
+          countType     = "imageCountMoreThan"
+          countNumber   = 5
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
-
-
-# Lifecycle policy
-resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
-  count      = var.create_lifecycle_policy ? 1 : 0
-  repository = aws_ecr_repository.main.name
-  policy     = var.lifecycle_policy
-}
-

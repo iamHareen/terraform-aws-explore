@@ -16,10 +16,6 @@ output "public_subnet_id" {
   value       = aws_subnet.public.id
 }
 
-output "private_subnet_id" { 
-  description = "ID of the single private subnet"
-  value       = aws_subnet.private.id
-}
 
 # Gateway Outputs
 output "internet_gateway_id" {
@@ -27,23 +23,8 @@ output "internet_gateway_id" {
   value       = aws_internet_gateway.igw.id
 }
 
-output "nat_gateway_id" {
-  description = "ID of the NAT Gateway"
-  value       = aws_nat_gateway.nat.id
-}
-
-output "nat_gateway_public_ip" {
-  description = "Public IP of the NAT Gateway"
-  value       = aws_eip.nat.public_ip
-}
-
 # Route Tables
 output "public_route_table_id" {
   description = "ID of the public route table"
   value       = aws_route_table.public.id
-}
-
-output "private_route_table_id" {
-  description = "ID of the private route table"
-  value       = aws_route_table.private.id
 }

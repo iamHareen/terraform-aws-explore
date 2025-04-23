@@ -1,65 +1,86 @@
 # modules/ecs/main.tf
 
+# # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = "${var.project_name}-${var.environment}-cluster"
   setting {
     name  = "containerInsights"
     value = var.enable_container_insights ? "enabled" : "disabled"
   }
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.project_name}-ecs-cluster-${var.environment}"
+    }
+  )
 }
 
-
+# Task Definition
 resource "aws_ecs_task_definition" "main" {
-  family                   = "${var.project_name}-${var.environment}-task"
+  family                   = "${var.project_name}-task-${var.environment}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.task_cpu
   memory                   = var.task_memory
   execution_role_arn       = var.task_execution_role_arn
-  task_role_arn            = var.task_role_arn
 
-  container_definitions = jsonencode([
-    {
-      name      = "${var.project_name}-${var.environment}-container"
-      image     = "${var.container_image}"
-      essential = true
-
-      portMappings = [
-        {
-          containerPort = var.container_port
-          hostPort      = var.container_port
-          protocol      = "tcp"
-        }
-      ]
-
-      environment = var.container_environment
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = var.cloudwatch_log_group_name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
+  container_definitions = jsonencode([{
+    name      = "${var.project_name}-container-${var.environment}"
+    image     = "${var.container_image}:${var.container_tag}"
+    essential = true
+    portMappings = [{
+      containerPort = var.container_port
+      hostPort      = var.container_port
+    }]
+    environment = var.environment_variables
+    secrets     = var.secrets
+    logConfiguration = {
+      logDriver = "awslogs",
+      options = {
+        "awslogs-group"         = var.cloudwatch_log_group_name
+        "awslogs-region"        = data.aws_region.current.name,
+        "awslogs-stream-prefix" = "ecs"
       }
     }
-  ])
+  }])
 
-  lifecycle {
-    create_before_destroy = true
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.project_name}-task-definition-${var.environment}"
+    }
+  )
+}
+
+# ECS Service
+resource "aws_ecs_service" "main" {
+  name            = "${var.project_name}-service-${var.environment}"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.main.arn
+  desired_count   = var.desired_count
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = [var.public_subnet_id]
+    security_groups  = [aws_security_group.ecs_service.id]
+    assign_public_ip = true
   }
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.project_name}-ecs-service-${var.environment}"
+    }
+  )
 }
 
 
-resource "aws_security_group" "ecs_tasks" {
-  name        = "${var.project_name}-${var.environment}-ecs-tasks-sg"
-  description = "Security group for ECS tasks"
+# Security Group for ECS Service
+resource "aws_security_group" "ecs_service" {
+  name        = "${var.project_name}-ecs-sg-${var.environment}"
+  description = "Security group for ECS service"
   vpc_id      = var.vpc_id
 
-  # Outbound internet access
   egress {
     from_port   = 0
     to_port     = 0
@@ -67,48 +88,16 @@ resource "aws_security_group" "ecs_tasks" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Inbound access for container port
-  ingress {
-    from_port   = var.container_port
-    to_port     = var.container_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = merge(
+    var.tags,
     {
-      Name = "${var.project_name}-${var.environment}-ecs-tasks-sg"
+      Name = "${var.project_name}-ecs-sg-${var.environment}"
     }
   )
 }
 
 
-resource "aws_ecs_service" "main" {
-  name                               = "${var.project_name}-${var.environment}-service"
-  cluster                            = aws_ecs_cluster.main.id
-  task_definition                    = aws_ecs_task_definition.main.arn
-  desired_count                      = var.service_desired_count
-  launch_type                        = "FARGATE"
-  platform_version                   = "LATEST"
-  health_check_grace_period_seconds  = var.health_check_grace_period
-
-  network_configuration {
-    subnets          = var.subnet_ids
-    security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = var.assign_public_ip
-  }
-
-  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-  deployment_maximum_percent         = var.deployment_maximum_percent
-
-  deployment_circuit_breaker {
-    enable   = true
-    rollback = true
-  }
-
-  lifecycle {
-    ignore_changes = [desired_count]
-  }
-
-  tags = var.tags
+# Declare the AWS Region data source
+data "aws_region" "current" {
+  # No configuration needed; fetches the current region
 }
